@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backstage Worship - Health Assessment</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --gold: #D4AF37;
+            --black: #000000;
+            --white: #FFFFFF;
+            --dark-gray: #1a1a1a;
+            --light-gray: #f5f5f5;
+        }
+
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background: var(--black);
+            color: var(--white);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--gold);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 300;
+        }
+
+        /* Selection Screen */
+        .selection-screen {
+            display: block;
+        }
+
+        .selection-screen.hidden {
+            display: none;
+        }
+
+        .intro-text {
+            text-align: center;
+            margin-bottom: 50px;
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .intro-text h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: var(--gold);
+            margin-bottom: 20px;
+        }
+
+        .assessment-cards {
+            display: grid;
+            gap: 30px;
+        }
+
+        .assessment-card {
+            background: linear-gradient(135deg, var(--dark-gray) 0%, #2a2a2a 100%);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 40px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .assessment-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--gold) 0%, #f4d03f 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: 0;
+        }
+
+        .assessment-card:hover {
+            border-color: var(--gold);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(212, 175, 55, 0.2);
+        }
+
+        .assessment-card:hover::before {
+            opacity: 0.1;
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: var(--gold);
+            margin-bottom: 15px;
+        }
+
+        .card-description {
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.7;
+            margin-bottom: 10px;
+        }
+
+        .card-meta {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.4);
+            font-weight: 300;
+        }
+
+        /* Question Screen */
+        .question-screen {
+            display: none;
+            min-height: 60vh;
+        }
+
+        .question-screen.active {
+            display: block;
+            animation: fadeIn 0.6s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin-bottom: 40px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--gold) 0%, #f4d03f 100%);
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 0%;
+        }
+
+        .section-indicator {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--gold);
+            font-weight: 500;
+        }
+
+        .question-container {
+            background: var(--dark-gray);
+            border-radius: 12px;
+            padding: 50px 40px;
+            margin-bottom: 40px;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .question-number {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 20px;
+            font-weight: 300;
+        }
+
+        .question-text {
+            font-size: 1.5rem;
+            line-height: 1.6;
+            color: var(--white);
+            margin-bottom: 40px;
+            font-weight: 400;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 20px 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-align: left;
+        }
+
+        .option:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--gold);
+            transform: translateX(5px);
+        }
+
+        .option.selected {
+            background: rgba(212, 175, 55, 0.15);
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        /* Navigation Buttons */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .btn {
+            padding: 16px 40px;
+            border: 2px solid var(--gold);
+            background: transparent;
+            color: var(--gold);
+            font-size: 1rem;
+            font-weight: 500;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Work Sans', sans-serif;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .btn:hover {
+            background: var(--gold);
+            color: var(--black);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn:disabled:hover {
+            background: transparent;
+            color: var(--gold);
+            box-shadow: none;
+        }
+
+        .btn-primary {
+            background: var(--gold);
+            color: var(--black);
+        }
+
+        .btn-primary:hover {
+            background: #f4d03f;
+        }
+
+        /* Info Form */
+        .info-screen {
+            display: none;
+        }
+
+        .info-screen.active {
+            display: block;
+            animation: fadeIn 0.6s ease;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--gold);
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: var(--white);
+            font-size: 1rem;
+            font-family: 'Work Sans', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--gold);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .form-group select option {
+            background: var(--dark-gray);
+            color: var(--white);
+        }
+
+        /* Completion Screen */
+        .completion-screen {
+            display: none;
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .completion-screen.active {
+            display: block;
+            animation: fadeIn 0.6s ease;
+        }
+
+        .completion-icon {
+            font-size: 4rem;
+            margin-bottom: 30px;
+        }
+
+        .completion-screen h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            color: var(--gold);
+            margin-bottom: 20px;
+        }
+
+        .completion-screen p {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.8;
+            max-width: 600px;
+            margin: 0 auto 30px;
+        }
+
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 2rem;
+            }
+
+            .question-text {
+                font-size: 1.2rem;
+            }
+
+            .question-container {
+                padding: 30px 25px;
+            }
+
+            .nav-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">BACKSTAGE WORSHIP</div>
+            <div class="subtitle">Health Assessment</div>
+        </header>
+
+        <!-- Selection Screen -->
+        <div class="selection-screen" id="selectionScreen">
+            <div class="intro-text">
+                <h2>Choose Your Assessment</h2>
+                <p>Select the assessment that best matches your role. Your honest responses will contribute to a comprehensive health report for your ministry.</p>
+            </div>
+
+            <div class="assessment-cards">
+                <div class="assessment-card" onclick="selectAssessment('team')">
+                    <div class="card-content">
+                        <div class="card-title">Worship Team Member</div>
+                        <div class="card-description">
+                            Evaluate your experience as a worship team member across team culture, musical excellence, spiritual health, leadership communication, and service excellence.
+                        </div>
+                        <div class="card-meta">37 Questions • 8-12 minutes</div>
+                    </div>
+                </div>
+
+                <div class="assessment-card" onclick="selectAssessment('leader')">
+                    <div class="card-content">
+                        <div class="card-title">Worship Leader</div>
+                        <div class="card-description">
+                            Assess your leadership journey covering spiritual life, musical development, leadership vision, team development, and personal well-being.
+                        </div>
+                        <div class="card-meta">35 Questions • 8-12 minutes</div>
+                    </div>
+                </div>
+
+                <div class="assessment-card" onclick="selectAssessment('pastor')">
+                    <div class="card-content">
+                        <div class="card-title">Pastor / Oversight Leader</div>
+                        <div class="card-description">
+                            Evaluate your oversight of worship ministry including vision alignment, team support, communication, resource management, and spiritual covering.
+                        </div>
+                        <div class="card-meta">29 Questions • 6-10 minutes</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Collection Screen -->
+        <div class="info-screen" id="infoScreen">
+            <div class="intro-text">
+                <h2>Your Information</h2>
+                <p>Please provide your details so we can group responses by organization.</p>
+            </div>
+
+            <div class="question-container">
+                <form id="infoForm">
+                    <div class="form-group">
+                        <label for="fullName">Full Name *</label>
+                        <input type="text" id="fullName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address *</label>
+                        <input type="email" id="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="organization">Church / Organization Name *</label>
+                        <input type="text" id="organization" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="role">Your Role (optional)</label>
+                        <input type="text" id="role" placeholder="e.g., Vocalist, Guitarist, Pastor">
+                    </div>
+                </form>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="btn" onclick="backToSelection()">Back</button>
+                <button class="btn btn-primary" onclick="startAssessment()">Begin Assessment</button>
+            </div>
+        </div>
+
+        <!-- Question Screen -->
+        <div class="question-screen" id="questionScreen">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <div class="section-indicator" id="sectionIndicator"></div>
+
+            <div class="question-container">
+                <div class="question-number" id="questionNumber"></div>
+                <div class="question-text" id="questionText"></div>
+                <div class="options" id="options"></div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="btn" id="prevBtn" onclick="previousQuestion()">Previous</button>
+                <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" disabled>Next</button>
+            </div>
+        </div>
+
+        <!-- Completion Screen -->
+        <div class="completion-screen" id="completionScreen">
+            <div class="completion-icon">✓</div>
+            <h2>Assessment Complete</h2>
+            <p>Thank you for your honest responses. Your feedback has been securely recorded and will contribute to your organization's comprehensive health report.</p>
+            <p>The leadership team will receive a detailed analysis once all team members have completed their assessments.</p>
+            <button class="btn btn-primary" onclick="location.reload()">Complete</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Firebase configuration
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { getDatabase, ref, push, set } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
+
+        const firebaseConfig = {
+           apiKey: "AIzaSyBbOgxE2GU-HHahxRnc4GTH_v_UyxL_uog",
+  authDomain: "backstage-worship-assessment.firebaseapp.com",
+  databaseURL: "https://backstage-worship-assessment-default-rtdb.firebaseio.com",
+  projectId: "backstage-worship-assessment",
+  storageBucket: "backstage-worship-assessment.firebasestorage.app",
+  messagingSenderId: "189779521949",
+  appId: "1:189779521949:web:b55b6619ed88600c6e7f74"
+};
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Question data structure
+        const assessments = {
+            team: {
+                title: "Worship Team Health Assessment",
+                sections: [
+                    {
+                        name: "Team Culture",
+                        questions: [
+                            "I feel valued and appreciated as a member of this worship team",
+                            "There is a strong sense of unity and friendship among team members",
+                            "Our team handles conflicts in a healthy and constructive manner",
+                            "I feel comfortable being vulnerable and authentic with my teammates",
+                            "Team members encourage and support one another consistently",
+                            "Our team celebrates both individual and collective growth",
+                            "I feel safe to share my struggles and prayer requests with the team"
+                        ]
+                    },
+                    {
+                        name: "Musical Excellence",
+                        questions: [
+                            "Our team is committed to musical excellence and continuous improvement",
+                            "Individual practice and preparation is expected and valued",
+                            "Rehearsals are well-organized and productive",
+                            "Team members are open to constructive musical feedback",
+                            "We have appropriate opportunities for musical training and development",
+                            "Sound and technical aspects are handled with professionalism",
+                            "Our song selection is appropriate and well-prepared"
+                        ]
+                    },
+                    {
+                        name: "Spiritual Health",
+                        questions: [
+                            "Our team prioritizes spiritual preparation over musical preparation",
+                            "Team members regularly pray together outside of scheduled services",
+                            "There are opportunities for spiritual growth and discipleship within the team",
+                            "Team devotions and prayer times are meaningful and impactful",
+                            "Our worship leading flows from authentic personal worship",
+                            "Team members hold each other accountable in their walk with God",
+                            "I feel spiritually strengthened through my involvement in this ministry"
+                        ]
+                    },
+                    {
+                        name: "Leadership & Communication",
+                        questions: [
+                            "Leadership communicates vision and direction clearly to the team",
+                            "I understand my role and what is expected of me",
+                            "Important information reaches team members in a timely manner",
+                            "Leadership is approachable and accessible when needed",
+                            "Decisions affecting the team are communicated with transparency",
+                            "There are clear channels for team members to share ideas and concerns",
+                            "Leadership values and considers input from team members"
+                        ]
+                    },
+                    {
+                        name: "Service Excellence",
+                        questions: [
+                            "Our team serves the congregation with humility and servant-heartedness",
+                            "Team members are reliable and fulfill their commitments",
+                            "We start and end services on time consistently",
+                            "Transitions during services are smooth and well-executed",
+                            "The team is sensitive to the Holy Spirit's leading during services",
+                            "We effectively create space for the congregation to encounter God",
+                            "Post-service evaluation and improvement is part of our culture"
+                        ]
+                    }
+                ]
+            },
+            leader: {
+                title: "Worship Leader Health Assessment",
+                sections: [
+                    {
+                        name: "Spiritual Life",
+                        questions: [
+                            "I maintain a consistent personal devotional life separate from ministry preparation",
+                            "My relationship with God is the primary source of my worship leading",
+                            "I regularly experience times of personal worship outside of leading",
+                            "I have accountability relationships that support my spiritual growth",
+                            "I am intentional about continuing to grow in my understanding of worship theology",
+                            "I guard against performing rather than genuinely worshiping when I lead",
+                            "I regularly seek God's direction for this worship ministry"
+                        ]
+                    },
+                    {
+                        name: "Musical & Creative Development",
+                        questions: [
+                            "I am actively developing my musical skills and abilities",
+                            "I stay current with worship music trends and new songs",
+                            "I invest time in learning from other worship leaders and resources",
+                            "I am growing in my ability to arrange and transition between songs",
+                            "I am intentional about expanding my musical repertoire and versatility",
+                            "I seek opportunities for musical feedback and improvement",
+                            "I am creative in song selection and service planning"
+                        ]
+                    },
+                    {
+                        name: "Leadership & Vision",
+                        questions: [
+                            "I have a clear sense of vision for this worship ministry",
+                            "I communicate vision effectively to the team and leadership",
+                            "I am developing leadership skills alongside musical skills",
+                            "I make decisions that align with the church's overall vision and values",
+                            "I am proactive in planning and preparing for worship services",
+                            "I understand how to build and maintain a healthy team culture",
+                            "I regularly evaluate and adjust our ministry approach based on feedback and results"
+                        ]
+                    },
+                    {
+                        name: "Team Development",
+                        questions: [
+                            "I invest time in developing the skills of team members",
+                            "I provide regular encouragement and affirmation to the team",
+                            "I give constructive feedback in a way that promotes growth",
+                            "I create opportunities for team members to develop their gifts",
+                            "I am intentional about team spiritual formation and discipleship",
+                            "I address team conflicts and issues in a timely and healthy manner",
+                            "I celebrate team and individual wins and progress"
+                        ]
+                    },
+                    {
+                        name: "Personal Well-being",
+                        questions: [
+                            "I maintain healthy boundaries between ministry and personal life",
+                            "I have supportive relationships outside of the worship team",
+                            "I take adequate time for rest and renewal",
+                            "I process ministry challenges in healthy ways",
+                            "I have someone I can talk to about the pressures of leadership",
+                            "I am aware of and managing any signs of burnout",
+                            "I maintain joy and passion for worship ministry"
+                        ]
+                    }
+                ]
+            },
+            pastor: {
+                title: "Pastor/Oversight Leader Assessment",
+                sections: [
+                    {
+                        name: "Vision & Alignment",
+                        questions: [
+                            "There is clarity about the role of worship in our church's overall vision",
+                            "The worship ministry aligns well with our church's values and mission",
+                            "I have communicated clear expectations for the worship ministry",
+                            "The worship leader and I are aligned in vision and direction",
+                            "Worship planning integrates with overall ministry planning and calendar",
+                            "Our worship philosophy is clearly defined and understood by leadership"
+                        ]
+                    },
+                    {
+                        name: "Team Support & Development",
+                        questions: [
+                            "I provide adequate support and encouragement to the worship leader",
+                            "Resources (financial, equipment, training) for worship ministry are appropriate",
+                            "I understand the challenges and pressures faced by worship leaders",
+                            "I create space for the worship team to grow and develop",
+                            "I celebrate and affirm the worship ministry publicly",
+                            "I invest in the spiritual formation of the worship leader and team"
+                        ]
+                    },
+                    {
+                        name: "Communication & Collaboration",
+                        questions: [
+                            "I have regular, meaningful communication with the worship leader",
+                            "I provide timely feedback on worship services and direction",
+                            "I include the worship leader in relevant ministry planning discussions",
+                            "The worship leader feels heard and valued in leadership conversations",
+                            "There is healthy collaboration between worship and other ministries",
+                            "Issues or concerns are addressed directly and promptly"
+                        ]
+                    },
+                    {
+                        name: "Resource Management",
+                        questions: [
+                            "Budget allocation for worship ministry is adequate and strategic",
+                            "Equipment and technology needs are addressed appropriately",
+                            "There is a plan for upgrading and maintaining worship resources",
+                            "Training and development opportunities are available and supported",
+                            "The worship ministry has appropriate volunteer and staff support"
+                        ]
+                    },
+                    {
+                        name: "Spiritual Covering",
+                        questions: [
+                            "I regularly pray specifically for the worship ministry and team",
+                            "I provide spiritual oversight and pastoral care to the worship leader",
+                            "I protect the worship team from unhealthy criticism or demands",
+                            "I help maintain focus on worship as ministry, not performance",
+                            "I am attentive to the spiritual health of the worship team",
+                            "I model healthy worship engagement for the congregation"
+                        ]
+                    }
+                ]
+            }
+        };
+
+        const scaleOptions = [
+            { value: 1, label: "Strongly Disagree" },
+            { value: 2, label: "Disagree" },
+            { value: 3, label: "Neutral" },
+            { value: 4, label: "Agree" },
+            { value: 5, label: "Strongly Agree" }
+        ];
+
+        // State
+        let currentAssessment = null;
+        let currentQuestionIndex = 0;
+        let responses = {};
+        let userInfo = {};
+        let allQuestions = [];
+
+        // Make functions globally available
+        window.selectAssessment = function(type) {
+            currentAssessment = type;
+            document.getElementById('selectionScreen').classList.add('hidden');
+            document.getElementById('infoScreen').classList.add('active');
+        };
+
+        window.backToSelection = function() {
+            document.getElementById('infoScreen').classList.remove('active');
+            document.getElementById('selectionScreen').classList.remove('hidden');
+        };
+
+        window.startAssessment = function() {
+            const form = document.getElementById('infoForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            userInfo = {
+                name: document.getElementById('fullName').value,
+                email: document.getElementById('email').value,
+                organization: document.getElementById('organization').value,
+                role: document.getElementById('role').value
+            };
+
+            // Flatten questions from sections
+            const assessment = assessments[currentAssessment];
+            allQuestions = [];
+            assessment.sections.forEach(section => {
+                section.questions.forEach(question => {
+                    allQuestions.push({
+                        section: section.name,
+                        text: question
+                    });
+                });
+            });
+
+            document.getElementById('infoScreen').classList.remove('active');
+            document.getElementById('questionScreen').classList.add('active');
+            renderQuestion();
+        };
+
+        window.nextQuestion = function() {
+            if (currentQuestionIndex < allQuestions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion();
+            } else {
+                submitAssessment();
+            }
+        };
+
+        window.previousQuestion = function() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+            }
+        };
+
+        window.selectOption = function(value) {
+            const questionKey = `q${currentQuestionIndex}`;
+            responses[questionKey] = {
+                section: allQuestions[currentQuestionIndex].section,
+                question: allQuestions[currentQuestionIndex].text,
+                value: value
+            };
+            
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+            
+            document.getElementById('nextBtn').disabled = false;
+        };
+
+        function renderQuestion() {
+            const question = allQuestions[currentQuestionIndex];
+            const progress = ((currentQuestionIndex + 1) / allQuestions.length) * 100;
+            
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('sectionIndicator').textContent = question.section;
+            document.getElementById('questionNumber').textContent = `Question ${currentQuestionIndex + 1} of ${allQuestions.length}`;
+            document.getElementById('questionText').textContent = question.text;
+            
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            
+            scaleOptions.forEach(option => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option';
+                optionDiv.textContent = option.label;
+                optionDiv.onclick = () => selectOption(option.value);
+                
+                const questionKey = `q${currentQuestionIndex}`;
+                if (responses[questionKey] && responses[questionKey].value === option.value) {
+                    optionDiv.classList.add('selected');
+                    document.getElementById('nextBtn').disabled = false;
+                }
+                
+                optionsContainer.appendChild(optionDiv);
+            });
+            
+            document.getElementById('prevBtn').disabled = currentQuestionIndex === 0;
+            
+            const questionKey = `q${currentQuestionIndex}`;
+            if (!responses[questionKey]) {
+                document.getElementById('nextBtn').disabled = true;
+            }
+            
+            if (currentQuestionIndex === allQuestions.length - 1) {
+                document.getElementById('nextBtn').textContent = 'Submit';
+            } else {
+                document.getElementById('nextBtn').textContent = 'Next';
+            }
+        }
+
+        async function submitAssessment() {
+            try {
+                const assessmentRef = ref(database, 'assessments');
+                const newAssessmentRef = push(assessmentRef);
+                
+                const submissionData = {
+                    type: currentAssessment,
+                    userInfo: userInfo,
+                    responses: responses,
+                    timestamp: new Date().toISOString(),
+                    assessmentTitle: assessments[currentAssessment].title
+                };
+                
+                await set(newAssessmentRef, submissionData);
+                
+                document.getElementById('questionScreen').classList.remove('active');
+                document.getElementById('completionScreen').classList.add('active');
+            } catch (error) {
+                console.error('Error submitting assessment:', error);
+                alert('There was an error submitting your assessment. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>
