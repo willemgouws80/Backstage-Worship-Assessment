@@ -466,9 +466,29 @@
                         <input type="text" id="organization" required>
                     </div>
 
+                    <!-- Tenure Question (changes based on assessment type) -->
                     <div class="form-group">
-                        <label for="role">Your Role (optional)</label>
-                        <input type="text" id="role" placeholder="e.g., Vocalist, Guitarist, Pastor">
+                        <label for="tenure" id="tenureLabel">How long have you been part of this worship team? *</label>
+                        <select id="tenure" required>
+                            <option value="">Select...</option>
+                            <option value="0-6 months">0 - 6 Months</option>
+                            <option value="6-12 months">6 - 12 Months</option>
+                            <option value="1-3 years">1 - 3 Years</option>
+                            <option value="3+ years">3+ Years</option>
+                        </select>
+                    </div>
+
+                    <!-- Primary Role Question (only for team assessment) -->
+                    <div class="form-group" id="roleGroup">
+                        <label for="primaryRole">What is your primary role in the worship team? *</label>
+                        <select id="primaryRole" required>
+                            <option value="">Select...</option>
+                            <option value="Vocalist">Vocalist</option>
+                            <option value="Instrumentalist">Instrumentalist</option>
+                            <option value="Tech / Production">Tech / Production</option>
+                            <option value="Media / Visuals">Media / Visuals</option>
+                            <option value="Other">Other</option>
+                        </select>
                     </div>
                 </form>
             </div>
@@ -514,7 +534,7 @@
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
         import { getDatabase, ref, push, set } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
 
-        const firebaseConfig = {
+      const firebaseConfig = {
            apiKey: "AIzaSyBbOgxE2GU-HHahxRnc4GTH_v_UyxL_uog",
   authDomain: "backstage-worship-assessment.firebaseapp.com",
   databaseURL: "https://backstage-worship-assessment-default-rtdb.firebaseio.com",
@@ -740,6 +760,24 @@
             currentAssessment = type;
             document.getElementById('selectionScreen').classList.add('hidden');
             document.getElementById('infoScreen').classList.add('active');
+            
+            // Customize the tenure label based on assessment type
+            const tenureLabel = document.getElementById('tenureLabel');
+            const roleGroup = document.getElementById('roleGroup');
+            
+            if (type === 'team') {
+                tenureLabel.textContent = 'How long have you been part of this worship team? *';
+                roleGroup.style.display = 'block';
+                document.getElementById('primaryRole').required = true;
+            } else if (type === 'leader') {
+                tenureLabel.textContent = 'How long have you been part of this church? *';
+                roleGroup.style.display = 'none';
+                document.getElementById('primaryRole').required = false;
+            } else if (type === 'pastor') {
+                tenureLabel.textContent = 'How long have you been part of this ministry team? *';
+                roleGroup.style.display = 'none';
+                document.getElementById('primaryRole').required = false;
+            }
         };
 
         window.backToSelection = function() {
@@ -758,7 +796,8 @@
                 name: document.getElementById('fullName').value,
                 email: document.getElementById('email').value,
                 organization: document.getElementById('organization').value,
-                role: document.getElementById('role').value
+                tenure: document.getElementById('tenure').value,
+                role: currentAssessment === 'team' ? document.getElementById('primaryRole').value : 'N/A'
             };
 
             // Flatten questions from sections

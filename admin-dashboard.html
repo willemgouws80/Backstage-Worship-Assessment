@@ -526,8 +526,8 @@
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
         import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
 
-      const firebaseConfig = {
-  apiKey: "AIzaSyBbOgxE2GU-HHahxRnc4GTH_v_UyxL_uog",
+     const firebaseConfig = {
+           apiKey: "AIzaSyBbOgxE2GU-HHahxRnc4GTH_v_UyxL_uog",
   authDomain: "backstage-worship-assessment.firebaseapp.com",
   databaseURL: "https://backstage-worship-assessment-default-rtdb.firebaseio.com",
   projectId: "backstage-worship-assessment",
@@ -543,7 +543,7 @@
         let filteredSubmissions = [];
         let selectedSubmissions = new Set();
 
-        const ADMIN_PASSWORD = "MeAndMyHouse1";
+        const ADMIN_PASSWORD = "MeANdMyHouse1"; 
 
         window.login = function() {
             const password = document.getElementById('adminPassword').value;
@@ -639,8 +639,9 @@
                             <th>Name</th>
                             <th>Organization</th>
                             <th>Type</th>
-                            <th>Date</th>
+                            <th>Tenure</th>
                             <th>Role</th>
+                            <th>Date</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -665,8 +666,9 @@
                         <td>${submission.userInfo.name}</td>
                         <td>${submission.userInfo.organization}</td>
                         <td><span class="type-badge ${typeClass}">${typeName}</span></td>
-                        <td>${date}</td>
+                        <td>${submission.userInfo.tenure || '-'}</td>
                         <td>${submission.userInfo.role || '-'}</td>
+                        <td>${date}</td>
                     </tr>
                 `;
             });
