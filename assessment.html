@@ -41,6 +41,21 @@
             position: relative;
         }
 
+        .logo-image {
+            max-width: 400px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .logo-small {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            max-width: 150px;
+            z-index: 100;
+            opacity: 0.9;
+        }
+
         .logo {
             font-family: 'Playfair Display', serif;
             font-size: 2.5rem;
@@ -48,6 +63,7 @@
             color: var(--gold);
             margin-bottom: 10px;
             letter-spacing: 2px;
+            display: none; /* Hide text logo when we have image */
         }
 
         .subtitle {
@@ -241,6 +257,30 @@
             color: var(--gold);
         }
 
+        .open-response {
+            width: 100%;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: var(--white);
+            font-size: 1rem;
+            font-family: 'Work Sans', sans-serif;
+            resize: vertical;
+            min-height: 150px;
+            transition: all 0.3s ease;
+        }
+
+        .open-response:focus {
+            outline: none;
+            border-color: var(--gold);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .open-response::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
         /* Navigation Buttons */
         .nav-buttons {
             display: flex;
@@ -397,7 +437,12 @@
 </head>
 <body>
     <div class="container">
+        <!-- Small Logo (appears on all screens except selection) -->
+        <img src="logo.png" alt="Backstage Worship" class="logo-small" id="smallLogo" style="display: none;">
+        
         <header>
+            <!-- Large Logo (only on selection screen) -->
+            <img src="logo.png" alt="Backstage Worship" class="logo-image" id="largeLogo">
             <div class="logo">BACKSTAGE WORSHIP</div>
             <div class="subtitle">Health Assessment</div>
         </header>
@@ -534,7 +579,7 @@
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
         import { getDatabase, ref, push, set } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
 
-      const firebaseConfig = {
+     const firebaseConfig = {
            apiKey: "AIzaSyBbOgxE2GU-HHahxRnc4GTH_v_UyxL_uog",
   authDomain: "backstage-worship-assessment.firebaseapp.com",
   databaseURL: "https://backstage-worship-assessment-default-rtdb.firebaseio.com",
@@ -740,6 +785,34 @@
             }
         };
 
+        // Add open-ended questions as the LAST section for each assessment type
+        assessments.team.sections.push({
+            name: "Final Reflection",
+            questions: [
+                "What is the healthiest thing about your worship team?",
+                "What is the one thing that would most improve the worship team? (Important: Here, we are not talking about people, but the process)"
+            ],
+            isOpenEnded: true
+        });
+
+        assessments.leader.sections.push({
+            name: "Final Reflection",
+            questions: [
+                "What currently feels heaviest in your role?",
+                "What support would most help you thrive? (Important: Here, we are not talking about people, but the process)"
+            ],
+            isOpenEnded: true
+        });
+
+        assessments.pastor.sections.push({
+            name: "Final Reflection",
+            questions: [
+                "Where do you see the greatest opportunity for growth?",
+                "Where do you feel tension or uncertainty regarding worship/Worship team/Worship leader?"
+            ],
+            isOpenEnded: true
+        });
+
         const scaleOptions = [
             { value: 1, label: "Strongly Disagree" },
             { value: 2, label: "Disagree" },
@@ -760,6 +833,10 @@
             currentAssessment = type;
             document.getElementById('selectionScreen').classList.add('hidden');
             document.getElementById('infoScreen').classList.add('active');
+            
+            // Hide large logo, show small logo
+            document.getElementById('largeLogo').style.display = 'none';
+            document.getElementById('smallLogo').style.display = 'block';
             
             // Customize the tenure label based on assessment type
             const tenureLabel = document.getElementById('tenureLabel');
@@ -783,6 +860,10 @@
         window.backToSelection = function() {
             document.getElementById('infoScreen').classList.remove('active');
             document.getElementById('selectionScreen').classList.remove('hidden');
+            
+            // Show large logo again, hide small logo
+            document.getElementById('largeLogo').style.display = 'block';
+            document.getElementById('smallLogo').style.display = 'none';
         };
 
         window.startAssessment = function() {
@@ -807,7 +888,8 @@
                 section.questions.forEach(question => {
                     allQuestions.push({
                         section: section.name,
-                        text: question
+                        text: question,
+                        isOpenEnded: section.isOpenEnded || false
                     });
                 });
             });
@@ -861,20 +943,47 @@
             const optionsContainer = document.getElementById('options');
             optionsContainer.innerHTML = '';
             
-            scaleOptions.forEach(option => {
-                const optionDiv = document.createElement('div');
-                optionDiv.className = 'option';
-                optionDiv.textContent = option.label;
-                optionDiv.onclick = () => selectOption(option.value);
+            // Check if this is an open-ended question
+            if (question.isOpenEnded) {
+                const textarea = document.createElement('textarea');
+                textarea.className = 'open-response';
+                textarea.placeholder = 'Share your thoughts here...';
+                textarea.rows = 6;
                 
                 const questionKey = `q${currentQuestionIndex}`;
-                if (responses[questionKey] && responses[questionKey].value === option.value) {
-                    optionDiv.classList.add('selected');
+                if (responses[questionKey]) {
+                    textarea.value = responses[questionKey].value;
                     document.getElementById('nextBtn').disabled = false;
                 }
                 
-                optionsContainer.appendChild(optionDiv);
-            });
+                textarea.oninput = function() {
+                    const questionKey = `q${currentQuestionIndex}`;
+                    responses[questionKey] = {
+                        section: question.section,
+                        question: question.text,
+                        value: textarea.value.trim()
+                    };
+                    document.getElementById('nextBtn').disabled = textarea.value.trim().length === 0;
+                };
+                
+                optionsContainer.appendChild(textarea);
+            } else {
+                // Regular Likert scale options
+                scaleOptions.forEach(option => {
+                    const optionDiv = document.createElement('div');
+                    optionDiv.className = 'option';
+                    optionDiv.textContent = option.label;
+                    optionDiv.onclick = () => selectOption(option.value);
+                    
+                    const questionKey = `q${currentQuestionIndex}`;
+                    if (responses[questionKey] && responses[questionKey].value === option.value) {
+                        optionDiv.classList.add('selected');
+                        document.getElementById('nextBtn').disabled = false;
+                    }
+                    
+                    optionsContainer.appendChild(optionDiv);
+                });
+            }
             
             document.getElementById('prevBtn').disabled = currentQuestionIndex === 0;
             
